@@ -3,17 +3,22 @@ import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity } from 'react
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAPI } from './common/common';
 import ErrorPage from './errorPage';
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 const TrendingRepo = () => {
     const [repoArray, setRepoArray] = useState([])
     const [showErrorPage, setShowErrorPage] = useState(false)
-    useEffect(() => {
+    const [loading, setLoading] = useState(false)
+    const getData = () => {
+        setLoading(true)
         getAPI(
             'https://gh-trending-api.herokuapp.com/repositories',
             async (data) => {
                 await AsyncStorage.setItem('repoData', JSON.stringify(data))
                 setRepoArray(data)
+                setLoading(false)
             },
             async (error) => {
+                setLoading(false)
                 console.log('error')
                 let n = JSON.parse(await AsyncStorage.getItem('repoData'))
                 if (n) {
@@ -23,18 +28,37 @@ const TrendingRepo = () => {
                 }
             }
         )
+    }
+    useEffect(() => {
+        getData()
     }, [])
     return (
         <>
             {
                 showErrorPage ?
                     <ErrorPage />
-                    : <RenderFlatList data={repoArray} />
+                    : <RenderFlatList loading={loading} getData={getData} data={repoArray} />
             }
         </>
     )
 }
-const RenderFlatList = ({ data }) => {
+const LoadingList = () => {
+    return (
+        <SkeletonPlaceholder>
+            {Array.apply(null, { length: 15 }).map((x, i) =>
+                <View style={styles.listContainer}>
+                    <View style={styles.avatarImage} >
+                    </View>
+                    <View>
+                        <View style={[styles.usernameText,styles.skUsername]}></View>
+                        <View style={[styles.RepoText,styles.skRepo]}></View>
+                    </View>
+                </View>
+            )}
+        </SkeletonPlaceholder >
+    )
+}
+const RenderFlatList = ({ data, getData, loading }) => {
     const renderItem = ({ item }) => {
         return (
             <TouchableOpacity activeOpacity={.3}>
@@ -53,11 +77,17 @@ const RenderFlatList = ({ data }) => {
             <View style={styles.header}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'black' }}>Trending</Text>
             </View>
-            <FlatList
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={item => item.rank}
-            />
+            {loading
+                ? <LoadingList />
+                :
+                <FlatList
+                    refreshing={loading}
+                    onRefresh={() => { getData() }}
+                    data={data}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.rank}
+                />
+            }
         </>
     )
 }
@@ -98,7 +128,8 @@ const styles = StyleSheet.create({
     },
     RepoText: {
         fontSize: 16,
-        fontWeight: '500'
+        fontWeight: '500',
+        color: 'black'
     },
     header: {
         backgroundColor: 'white',
@@ -106,6 +137,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         elevation: 5
+    },
+    skUsername: {
+        width: 100,
+        height: 10,
+        borderRadius: 4,
+        marginBottom: 10
+    },
+    skRepo: {
+        width: 250,
+        height: 10,
+        borderRadius: 4
     }
 });
 export default TrendingRepo;
