@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, FlatList, StyleSheet, Image } from 'react-native';
+import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAPI } from './common/common';
 import ErrorPage from './errorPage';
@@ -37,22 +37,28 @@ const TrendingRepo = () => {
 const RenderFlatList = ({ data }) => {
     const renderItem = ({ item }) => {
         return (
-            <>
+            <TouchableOpacity activeOpacity={.3}>
                 <View style={styles.listContainer}>
                     <Image style={styles.avatarImage} source={{ uri: item['builtBy'][0]['avatar'] }} />
                     <View>
-                        <Text style={{ color: 'black' }}>{item.repositoryName}</Text>
+                        <Text style={styles.usernameText}>{item.username}</Text>
+                        <Text style={styles.RepoText}>{item.repositoryName}</Text>
                     </View>
                 </View>
-            </>
+            </TouchableOpacity>
         )
     }
     return (
-        <FlatList
-            data={data}
-            renderItem={renderItem}
-            keyExtractor={item => item.rank}
-        />
+        <>
+            <View style={styles.header}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: 'black' }}>Trending</Text>
+            </View>
+            <FlatList
+                data={data}
+                renderItem={renderItem}
+                keyExtractor={item => item.rank}
+            />
+        </>
     )
 }
 
@@ -81,9 +87,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 15,
-        paddingVertical: 10,
+        paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: 'lightgrey'
+    },
+    usernameText: {
+        color: 'grey',
+        fontSize: 12,
+        marginBottom: 3
+    },
+    RepoText: {
+        fontSize: 16,
+        fontWeight: '500'
+    },
+    header: {
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 12,
+        elevation: 5
     }
 });
 export default TrendingRepo;
