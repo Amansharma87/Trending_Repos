@@ -17,7 +17,7 @@ const getAPI = async (url, _success, _failure) => {
     }).then(function (data) {
       _success(data)
     }).catch((error) => {
-      console.log(error)
+      _failure(error)
       // _failure(error)
     });
   }

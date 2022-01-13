@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState,useRef } from 'react';
+import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity,Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAPI } from './common/common';
 import ErrorPage from './errorPage';
@@ -19,7 +19,6 @@ const TrendingRepo = () => {
             },
             async (error) => {
                 setLoading(false)
-                console.log('error')
                 let n = JSON.parse(await AsyncStorage.getItem('repoData'))
                 if (n) {
                     setRepoArray(n)
@@ -36,7 +35,7 @@ const TrendingRepo = () => {
         <>
             {
                 showErrorPage ?
-                    <ErrorPage />
+                    <ErrorPage getData={getData} setShowErrorPage={setShowErrorPage} />
                     : <RenderFlatList loading={loading} getData={getData} data={repoArray} />
             }
         </>
@@ -61,6 +60,7 @@ const LoadingList = () => {
 const RenderFlatList = ({ data, getData, loading }) => {
     const renderItem = ({ item }) => {
         return (
+            
             <TouchableOpacity activeOpacity={.3}>
                 <View style={styles.listContainer}>
                     <Image style={styles.avatarImage} source={{ uri: item['builtBy'][0]['avatar'] }} />
@@ -118,8 +118,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'lightgrey'
+        borderBottomWidth: .5,
+        borderTopWidth:.5,
+        borderBottomColor: 'lightgrey',
+        borderTopColor:'lightgrey'
     },
     usernameText: {
         color: 'grey',
