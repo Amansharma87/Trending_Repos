@@ -4,6 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAPI } from './common/common';
 import ErrorPage from './errorPage';
 import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import {
+    Menu,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
+    MenuProvider
+  } from 'react-native-popup-menu';
 const TrendingRepo = () => {
     const [repoArray, setRepoArray] = useState([])
     const [showErrorPage, setShowErrorPage] = useState(false)
@@ -33,28 +40,14 @@ const TrendingRepo = () => {
     }, [])
     return (
         <>
+        <MenuProvider>
             {
                 showErrorPage ?
                     <ErrorPage getData={getData} setShowErrorPage={setShowErrorPage} />
                     : <RenderFlatList loading={loading} getData={getData} data={repoArray} />
             }
+        </MenuProvider>
         </>
-    )
-}
-const LoadingList = () => {
-    return (
-        <SkeletonPlaceholder>
-            {Array.apply(null, { length: 15 }).map((x, i) =>
-                <View style={styles.listContainer}>
-                    <View style={styles.avatarImage} >
-                    </View>
-                    <View>
-                        <View style={[styles.usernameText,styles.skUsername]}></View>
-                        <View style={[styles.RepoText,styles.skRepo]}></View>
-                    </View>
-                </View>
-            )}
-        </SkeletonPlaceholder >
     )
 }
 const RenderFlatList = ({ data, getData, loading }) => {
@@ -84,7 +77,7 @@ const RenderFlatList = ({ data, getData, loading }) => {
                             <Text style={styles.usernameText}>{item.description}</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:item.language?20:0 }}>
-                                    {item.language ?<View style={{ borderRadius: 16, width: 10, height: 10, backgroundColor: item.languageColor, marginRight: 5 }}>
+                                    {item.language ?<View style={[styles.languageCircle,{backgroundColor: item.languageColor}]}>
                                     </View>:null}
                                     <Text>{item.language}</Text>
                                 </View>
@@ -108,9 +101,21 @@ const RenderFlatList = ({ data, getData, loading }) => {
       setExpanded({})
     },data)
     return (
-        <>
-            <View style={styles.header}>
+        <>  
+        
+            <View style={[styles.header, { flexDirection: 'row',elevation:0 }]}>
                 <Text style={{ fontSize: 18, fontWeight: '700', color: 'black' }}>Trending</Text>
+                    <Menu style={{position:'absolute',right:0,paddingBottom:20}}>
+                        <MenuTrigger>
+                                <Image style={{ width: 22, height: 20,position: 'absolute', right: 10 }} source={require('../assets/dots.png')} />
+                        </MenuTrigger>
+                        <MenuOptions optionsContainerStyle={{elevation:5,padding:10}}>
+                            <MenuOption onSelect={() => {}} text='Home' customStyles={{optionText:styles.optionStyle}} />
+                            <MenuOption onSelect={() => {}} text='Stared Repositories' customStyles={{optionText:styles.optionStyle}}/>
+                            <MenuOption onSelect={() => {}} text='Language Headers' customStyles={{optionText:[styles.optionStyle,{marginBottom:0}]}}/>
+                        </MenuOptions>
+                    </Menu>
+                
             </View>
             {loading
                 ? <LoadingList />
@@ -128,7 +133,22 @@ const RenderFlatList = ({ data, getData, loading }) => {
     )
 }
 
-
+const LoadingList = () => {
+    return (
+        <SkeletonPlaceholder>
+            {Array.apply(null, { length: 15 }).map((x, i) =>
+                <View style={styles.listContainer}>
+                    <View style={styles.avatarImage} >
+                    </View>
+                    <View style={{width:'80%'}}>
+                        <View style={[styles.usernameText,styles.skUsername]}></View>
+                        <View style={[styles.RepoText,styles.skRepo]}></View>
+                    </View>
+                </View>
+            )}
+        </SkeletonPlaceholder >
+    )
+}
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -177,15 +197,26 @@ const styles = StyleSheet.create({
         elevation: 5
     },
     skUsername: {
-        width: 100,
+        width: '40%',
         height: 10,
         borderRadius: 4,
-        marginBottom: 10
+        marginBottom: 15
     },
     skRepo: {
-        width: 250,
+        width: 'auto',
         height: 10,
         borderRadius: 4
+    },
+    optionStyle:{
+        fontSize:16,
+        color:'black',
+        marginBottom:5
+    },
+    languageCircle: {
+        borderRadius: 16,
+        width: 10,
+        height: 10,
+        marginRight: 5
     }
 });
 export default TrendingRepo;
