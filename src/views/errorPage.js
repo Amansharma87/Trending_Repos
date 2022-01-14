@@ -7,7 +7,7 @@ const ErrorPage = ({ getData, setShowErrorPage }) => {
                 <Text style={styles.headerText}>Trending</Text>
             </View>
             <View style={styles.container}>
-                <Image style={{ width: 300, height: 200 }} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642098676/tiny-people-examining-operating-system-error-warning-web-page-isolated-flat-illustration_74855-11104_zb7wsy.jpg' }} />
+                <Image style={{ width: 300, height: 200 }} source={require('../assets/no_signal.jpg')} />
                 <Text style={styles.wentwrong}>Something went wrong...</Text>
                 <Text style={{ marginTop: 10 }}>An alien is probably blocking your signal.</Text>
                 <View style={styles.buttonContainer} >

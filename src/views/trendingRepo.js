@@ -58,20 +58,55 @@ const LoadingList = () => {
     )
 }
 const RenderFlatList = ({ data, getData, loading }) => {
+    const [open,setOpen]=useState(false)
+    const [expanded,setExpanded]=useState({})
+    const handleCollapse = (rank) => {
+        setOpen(!open);
+        let n = expanded;
+        if (n[rank]) {
+            n[rank] = false;
+        } else {
+            n[rank] = true;
+        }
+        setExpanded(n)
+    }
     const renderItem = ({ item }) => {
+        const height=expanded[item['rank']]?'auto':0;
         return (
             
-            <TouchableOpacity activeOpacity={.3}>
-                <View style={styles.listContainer}>
+            <TouchableOpacity onPress={() => { handleCollapse(item['rank']) }} activeOpacity={.3}>
+                <View style={[styles.listContainer, { alignItems: height == 'auto' ? 'flex-start' : 'center' }]}>
                     <Image style={styles.avatarImage} source={{ uri: item['builtBy'][0]['avatar'] }} />
                     <View>
                         <Text style={styles.usernameText}>{item.username}</Text>
                         <Text style={styles.RepoText}>{item.repositoryName}</Text>
+                        <View style={{ height: height, paddingRight: 100,opacity:height==0?0:1 }}>
+                            <Text style={styles.usernameText}>{item.description}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:item.language?20:0 }}>
+                                    {item.language ?<View style={{ borderRadius: 16, width: 10, height: 10, backgroundColor: item.languageColor, marginRight: 5 }}>
+                                    </View>:null}
+                                    <Text>{item.language}</Text>
+                                </View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:20 }}>
+                                    <Image style={{ width: 12, height: 12, marginRight: 5 }} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642103841/star_1_hyujtk.png' }} />
+                                    <Text>{item.totalStars}</Text>
+                                </View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:20  }}>
+                                    <Image style={{ width: 12, height: 12, marginRight: 5 }} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642103841/connection_fofrqp.png' }} />
+                                    <Text>{item.totalStars}</Text>
+                                </View>
+                            </View>
+                        </View>
                     </View>
                 </View>
             </TouchableOpacity>
         )
     }
+    useEffect(()=>{
+      setOpen(false)
+      setExpanded({})
+    },data)
     return (
         <>
             <View style={styles.header}>
@@ -84,6 +119,7 @@ const RenderFlatList = ({ data, getData, loading }) => {
                     refreshing={loading}
                     onRefresh={() => { getData() }}
                     data={data}
+                    extraData={open}
                     renderItem={renderItem}
                     keyExtractor={item => item.rank}
                 />
