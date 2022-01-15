@@ -1,5 +1,5 @@
 import React, { useEffect, useState,useRef } from 'react';
-import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity,Animated } from 'react-native';
+import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity,Animated,SectionList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAPI } from './common/common';
 import ErrorPage from './errorPage';
@@ -15,6 +15,7 @@ const TrendingRepo = () => {
     const [repoArray, setRepoArray] = useState([])
     const [showErrorPage, setShowErrorPage] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [sectionData,setsectionData]=useState([])
     const getData = () => {
         setLoading(true)
         getAPI(
@@ -23,6 +24,28 @@ const TrendingRepo = () => {
                 await AsyncStorage.setItem('repoData', JSON.stringify(data))
                 setRepoArray(data)
                 setLoading(false)
+                let color={}
+                data.forEach((e) => {
+                    if(!color[e.languageColor]){
+                        color[e.languageColor]=[]
+                        
+                    }
+                    color[e.languageColor].push(e)
+                    
+                });
+                if(color[null]){
+                    let temp=color[null]
+                    delete color[null]
+                    color['null']=temp
+                }
+                let lhArray=[]
+                for (var key in color){
+                    lhArray.push({
+                        title:key,
+                        data:color[key]
+                    })
+                }
+                setsectionData(lhArray)
             },
             async (error) => {
                 setLoading(false)
@@ -44,13 +67,13 @@ const TrendingRepo = () => {
             {
                 showErrorPage ?
                     <ErrorPage getData={getData} setShowErrorPage={setShowErrorPage} />
-                    : <RenderFlatList loading={loading} getData={getData} data={repoArray} />
+                    : <RenderFlatList sectionData={sectionData} loading={loading} getData={getData} data={repoArray} />
             }
         </MenuProvider>
         </>
     )
 }
-const RenderFlatList = ({ data, getData, loading }) => {
+const RenderFlatList = ({ data, getData, loading,sectionData }) => {
     const [open,setOpen]=useState(false)
     const [expanded,setExpanded]=useState({})
     const handleCollapse = (rank) => {
@@ -63,6 +86,7 @@ const RenderFlatList = ({ data, getData, loading }) => {
         }
         setExpanded(n)
     }
+    const [showSectionList,setShowSectionList]=useState(false)
     const renderItem = ({ item }) => {
         const height=expanded[item['rank']]?'auto':0;
         return (
@@ -76,17 +100,17 @@ const RenderFlatList = ({ data, getData, loading }) => {
                         <View style={{ height: height, paddingRight: 100,opacity:height==0?0:1 }}>
                             <Text style={styles.usernameText}>{item.description}</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:item.language?20:0 }}>
+                                <View style={[styles.languageContainer,{marginRight:item.language?20:0}]}>
                                     {item.language ?<View style={[styles.languageCircle,{backgroundColor: item.languageColor}]}>
                                     </View>:null}
                                     <Text>{item.language}</Text>
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:20 }}>
-                                    <Image style={{ width: 12, height: 12, marginRight: 5 }} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642103841/star_1_hyujtk.png' }} />
+                                <View style={styles.iconContainer}>
+                                    <Image style={styles.icon} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642103841/star_1_hyujtk.png' }} />
                                     <Text>{item.totalStars}</Text>
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center',marginRight:20  }}>
-                                    <Image style={{ width: 12, height: 12, marginRight: 5 }} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642103841/connection_fofrqp.png' }} />
+                                <View style={styles.iconContainer}>
+                                    <Image style={styles.icon} source={{ uri: 'https://res.cloudinary.com/dzkartmuf/image/upload/v1642103841/connection_fofrqp.png' }} />
                                     <Text>{item.totalStars}</Text>
                                 </View>
                             </View>
@@ -94,6 +118,15 @@ const RenderFlatList = ({ data, getData, loading }) => {
                     </View>
                 </View>
             </TouchableOpacity>
+        )
+    }
+    const sectionHeader=({section})=>{
+        console.log(section)
+        const isNull=section['title']=='null'?true:false
+        return(
+            <View style={{justifyContent:'center',padding:10,backgroundColor:isNull?'lightgrey':section.title}}>
+                <Text style={{color:'white',fontSize:16,fontWeight:'500'}}>{isNull?'None':section['data'][0].language}</Text>
+            </View>
         )
     }
     useEffect(()=>{
@@ -104,21 +137,29 @@ const RenderFlatList = ({ data, getData, loading }) => {
         <>  
         
             <View style={[styles.header, { flexDirection: 'row',elevation:0 }]}>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: 'black' }}>Trending</Text>
-                    <Menu style={{position:'absolute',right:0,paddingBottom:20}}>
+                <Text style={styles.headerText}>Trending</Text>
+                    <Menu style={styles.Menu}>
                         <MenuTrigger>
-                                <Image style={{ width: 22, height: 20,position: 'absolute', right: 10 }} source={require('../assets/dots.png')} />
+                                <Image style={styles.dots} source={require('../assets/dots.png')} />
                         </MenuTrigger>
                         <MenuOptions optionsContainerStyle={{elevation:5,padding:10}}>
-                            <MenuOption onSelect={() => {}} text='Home' customStyles={{optionText:styles.optionStyle}} />
+                            <MenuOption onSelect={() => {setShowSectionList(false)}} text='Trendings' customStyles={{optionText:styles.optionStyle}} />
                             <MenuOption onSelect={() => {}} text='Stared Repositories' customStyles={{optionText:styles.optionStyle}}/>
-                            <MenuOption onSelect={() => {}} text='Language Headers' customStyles={{optionText:[styles.optionStyle,{marginBottom:0}]}}/>
+                            <MenuOption onSelect={() => {setShowSectionList(true)}} text='Language Headers' customStyles={{optionText:[styles.optionStyle,{marginBottom:0}]}}/>
                         </MenuOptions>
                     </Menu>
                 
             </View>
             {loading
                 ? <LoadingList />
+                :showSectionList?
+                <SectionList
+                sections={sectionData}
+                extraData={open}
+                renderItem={renderItem}
+                renderSectionHeader={sectionHeader}
+                keyExtractor={(item,index) => index}
+                />
                 :
                 <FlatList
                     refreshing={loading}
@@ -187,7 +228,8 @@ const styles = StyleSheet.create({
     RepoText: {
         fontSize: 16,
         fontWeight: '500',
-        color: 'black'
+        color: 'black',
+        marginBottom:3
     },
     header: {
         backgroundColor: 'white',
@@ -217,6 +259,36 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         marginRight: 5
+    },
+    iconContainer:{
+         flexDirection: 'row',
+          alignItems: 'center',
+          marginRight:20 
+    },
+    languageContainer:{
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    icon:{
+        width: 12,
+        height: 12,
+        marginRight: 5
+    },
+    dots:{
+        width: 22,
+        height: 20,
+        position: 'absolute',
+        right: 10
+    },
+    headerText:{
+        fontSize: 18,
+        fontWeight: '700',
+        color: 'black'
+    },
+    Menu:{
+        position:'absolute',
+        right:0,
+        paddingBottom:20
     }
 });
 export default TrendingRepo;
